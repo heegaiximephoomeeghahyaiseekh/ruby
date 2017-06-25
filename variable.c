@@ -2306,6 +2306,29 @@ rb_const_search_const_entry(VALUE klass, ID id, int exclude, int recurse, int vi
 }
 
 VALUE
+rb_const_source_location(VALUE klass, ID id)
+{
+    VALUE loc[2];
+    rb_const_entry_t *ce = rb_const_get_ce(klass, id, FALSE, TRUE, FALSE);
+
+    loc[0] = ce->file;
+    loc[1] = INT2FIX(ce->line);
+    return rb_ary_new4(2,loc);
+}
+
+
+VALUE
+rb_const_source_location_at(VALUE klass, ID id)
+{
+    VALUE loc[2];
+    rb_const_entry_t *ce = rb_const_get_ce(klass, id, TRUE, FALSE, FALSE);
+
+    loc[0] = ce->file;
+    loc[1] = INT2FIX(ce->line);
+    return rb_ary_new4(2,loc);
+}
+
+VALUE
 rb_const_get_from(VALUE klass, ID id)
 {
     return rb_const_get_0(klass, id, TRUE, TRUE, FALSE);
