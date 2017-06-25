@@ -2188,8 +2188,27 @@ rb_mod_attr_accessor(int argc, VALUE *argv, VALUE klass)
  *
  */
 
-static VALUE
+
+static VALUE rb_mod_const_get_all(int, VALUE *, VALUE, int);
+
+VALUE
 rb_mod_const_get(int argc, VALUE *argv, VALUE mod)
+{
+    return rb_mod_const_get_all(argc, argv, mod, FALSE);
+}
+
+VALUE
+rb_mod_const_resolve_recur(VALUE mod, ID id, VALUE recur, int source_location_p)
+{
+    if(source_location_p) {
+      return RTEST(recur) ? rb_const_source_location(mod, id) : rb_const_source_location_at(mod, id);
+    } else {
+      return RTEST(recur) ? rb_const_get(mod, id) : rb_const_get_at(mod, id);
+    }
+}
+
+static VALUE
+rb_mod_const_get_all(int argc, VALUE *argv, VALUE mod, int source_location_p)
 {
     VALUE name, recur;
     rb_encoding *enc;
@@ -2204,7 +2223,7 @@ rb_mod_const_get(int argc, VALUE *argv, VALUE mod)
 	if (!rb_is_const_sym(name)) goto wrong_name;
 	id = rb_check_id(&name);
 	if (!id) return rb_const_missing(mod, name);
-	return RTEST(recur) ? rb_const_get(mod, id) : rb_const_get_at(mod, id);
+	return rb_mod_const_resolve_recur(mod, id, recur, source_location_p);
     }
 
     path = StringValuePtr(name);
@@ -2270,7 +2289,7 @@ rb_mod_const_get(int argc, VALUE *argv, VALUE mod)
 	    name = ID2SYM(id);
 	    goto wrong_name;
 	}
-	mod = RTEST(recur) ? rb_const_get(mod, id) : rb_const_get_at(mod, id);
+	mod = rb_mod_const_resolve_recur(mod, id, recur, source_location_p);
     }
 
     return mod;
