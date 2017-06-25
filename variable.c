@@ -2244,6 +2244,17 @@ rb_const_search(VALUE klass, ID id, int exclude, int recurse, int visibility)
     return rb_const_search_const_entry(klass, id, exclude, recurse, visibility, &ce);
 }
 
+static rb_const_entry_t *
+rb_const_get_ce(VALUE klass, ID id, int exclude, int recurse, int visibility)
+{
+    rb_const_entry_t *ce;
+    VALUE value = rb_const_search_const_entry(klass, id, exclude, recurse, visibility, &ce);
+    if(!ce && value != Qundef) {
+        rb_const_search_const_entry(klass, id, exclude, recurse, visibility, &ce);
+    }
+    return ce;
+}
+
 static VALUE
 rb_const_search_const_entry(VALUE klass, ID id, int exclude, int recurse, int visibility, rb_const_entry_t **ce)
 {
