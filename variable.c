@@ -2234,8 +2234,18 @@ rb_const_get_0(VALUE klass, ID id, int exclude, int recurse, int visibility)
     return rb_const_missing(klass, ID2SYM(id));
 }
 
+
+static VALUE rb_const_search_const_entry(VALUE, ID, int, int, int, rb_const_entry_t **);
+
 static VALUE
 rb_const_search(VALUE klass, ID id, int exclude, int recurse, int visibility)
+{
+    rb_const_entry_t *ce;
+    return rb_const_search_const_entry(klass, id, exclude, recurse, visibility, &ce);
+}
+
+static VALUE
+rb_const_search_const_entry(VALUE klass, ID id, int exclude, int recurse, int visibility, rb_const_entry_t **ce)
 {
     VALUE value, tmp, av;
     int mod_retry = 0;
@@ -2244,19 +2254,21 @@ rb_const_search(VALUE klass, ID id, int exclude, int recurse, int visibility)
   retry:
     while (RTEST(tmp)) {
 	VALUE am = 0;
-	rb_const_entry_t *ce;
 
-	while ((ce = rb_const_lookup(tmp, id))) {
-	    if (visibility && RB_CONST_PRIVATE_P(ce)) {
+	while ((*ce = rb_const_lookup(tmp, id))) {
+	    if (visibility && RB_CONST_PRIVATE_P(*ce)) {
 		rb_name_err_raise("private constant %2$s::%1$s referenced",
 				  tmp, ID2SYM(id));
 	    }
-	    rb_const_warn_if_deprecated(ce, tmp, id);
-	    value = ce->value;
+	    rb_const_warn_if_deprecated(*ce, tmp, id);
+	    value = (*ce)->value;
 	    if (value == Qundef) {
 		if (am == tmp) break;
 		am = tmp;
-		if (rb_autoloading_value(tmp, id, &av)) return av;
+		if (rb_autoloading_value(tmp, id, &av)) {
+                    *ce=0;
+                    return av;
+                }
 		rb_autoload_load(tmp, id);
 		continue;
 	    }
