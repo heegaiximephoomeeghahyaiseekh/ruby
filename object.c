@@ -2198,6 +2198,12 @@ rb_mod_const_get(int argc, VALUE *argv, VALUE mod)
 }
 
 VALUE
+rb_mod_const_source_location(int argc, VALUE *argv, VALUE mod)
+{
+    return rb_mod_const_get_all(argc, argv, mod, TRUE);
+}
+
+VALUE
 rb_mod_const_resolve_recur(VALUE mod, ID id, VALUE recur, int source_location_p)
 {
     if(source_location_p) {
@@ -3691,6 +3697,7 @@ InitVM_Object(void)
 		     rb_class_private_instance_methods, -1);   /* in class.c */
 
     rb_define_method(rb_cModule, "constants", rb_mod_constants, -1); /* in variable.c */
+    rb_define_method(rb_cModule, "const_source_location", rb_mod_const_source_location, -1);
     rb_define_method(rb_cModule, "const_get", rb_mod_const_get, -1);
     rb_define_method(rb_cModule, "const_set", rb_mod_const_set, 2);
     rb_define_method(rb_cModule, "const_defined?", rb_mod_const_defined, -1);
